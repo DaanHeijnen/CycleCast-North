@@ -155,15 +155,28 @@ function initMap() {
     worldCopyJump: false
   }).setView([53.13, 5.65], 8);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    subdomains: 'abcd',
+  // Use one stable tile endpoint instead of rotating over a/b/c/d subdomains.
+  // In Netlify previews some CARTO subdomain tile requests can fail or arrive late,
+  // which leaves the map looking like scattered square blocks. A single endpoint
+  // is slightly less fancy, but much more reliable for this small app.
+  const baseTiles = L.tileLayer('https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; OpenStreetMap contributors &copy; CARTO | Weather data by Open-Meteo',
-    crossOrigin: true,
-    updateWhenIdle: false,
+    crossOrigin: false,
+    updateWhenIdle: true,
     updateWhenZooming: false,
-    keepBuffer: 4
+    keepBuffer: 6,
+    tileSize: 256
   }).addTo(map);
+
+  baseTiles.on('tileerror', event => {
+    // Last-resort fallback for a failed dark tile. This prevents blue holes in the map.
+    const img = event.tile;
+    if (!img.dataset.fallback) {
+      img.dataset.fallback = '1';
+      img.src = img.src.replace('https://basemaps.cartocdn.com', 'https://a.basemaps.cartocdn.com');
+    }
+  });
 
   L.control.zoom({ position: 'bottomright' }).addTo(map);
   markerLayer = L.layerGroup().addTo(map);
