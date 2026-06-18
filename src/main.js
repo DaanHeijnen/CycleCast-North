@@ -987,11 +987,43 @@ async function showRoute(id) {
     activeRoute = { ...(route || data.route), points: parsed.points };
     drawRoute(parsed.points);
     renderRoutes();
+    if (isTouchMapDevice()) setRoutePanelOpen(false);
     showStatus(route ? `${route.title} shown on the map.` : 'Route shown on the map.');
     setTimeout(hideStatus, 1200);
   } catch (err) {
     console.error(err);
     showStatus(err.message || 'Could not load this route.', true);
+  }
+}
+
+async function deleteRoute(id) {
+  const route = routes.find(r => r.id === id);
+  if (!route) return showStatus('Route not found.', true);
+  if (!authUser || route.ownerId !== (authUser.id || authUser.sub)) return showStatus('You can only delete your own uploaded routes.', true);
+  const confirmed = window.confirm(`Delete "${route.title || 'this route'}"? This cannot be undone.`);
+  if (!confirmed) return;
+
+  showStatus('Deleting route...');
+  try {
+    const token = await getIdentityToken();
+    const res = await fetch('/.netlify/functions/routes-delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({ id })
+    });
+    const data = await safeJson(res);
+    if (!res.ok) throw new Error(data?.error || 'Delete failed');
+    if (activeRoute?.id === id) clearRoute();
+    routes = routes.filter(r => r.id !== id);
+    renderRoutes();
+    showStatus('Route deleted.');
+    setTimeout(hideStatus, 1200);
+  } catch (err) {
+    console.error(err);
+    showStatus(err.message || 'Could not delete this route.', true);
   }
 }
 
@@ -1040,15 +1072,23 @@ function renderRoutes() {
   }
   els.routeList.innerHTML = filtered.map(route => {
     const selected = activeRoute?.id === route.id;
+    const owned = authUser && route.ownerId === (authUser.id || authUser.sub);
     const weather = routeWeatherSummary(route);
-    return `<button type="button" class="route-item ${selected ? 'selected' : ''}" data-route-id="${escapeHtml(route.id)}">
-      <div class="route-title-row"><strong>${escapeHtml(route.title || 'Untitled route')}</strong><span>${formatKm(route.distanceKm)}</span></div>
-      <div class="route-meta">Made by ${escapeHtml(route.creatorName || 'Unknown')} · ${formatRouteDate(route.createdAt)}</div>
-      ${route.description ? `<div class="route-description">${escapeHtml(route.description)}</div>` : ''}
-      <div class="route-weather">${weather}</div>
-    </button>`;
+    return `<article class="route-item ${selected ? 'selected' : ''}">
+      <button type="button" class="route-view-btn" data-route-id="${escapeHtml(route.id)}" aria-label="Show ${escapeHtml(route.title || 'route')} on the map">
+        <div class="route-title-row"><strong>${escapeHtml(route.title || 'Untitled route')}</strong><span>${formatKm(route.distanceKm)}</span></div>
+        <div class="route-meta">Made by ${escapeHtml(route.creatorName || 'Unknown')} · ${formatRouteDate(route.createdAt)}</div>
+        ${route.description ? `<div class="route-description">${escapeHtml(route.description)}</div>` : ''}
+        <div class="route-weather">${weather}</div>
+      </button>
+      ${owned ? `<button type="button" class="route-delete-btn" data-route-delete-id="${escapeHtml(route.id)}" aria-label="Delete ${escapeHtml(route.title || 'route')}">Delete</button>` : ''}
+    </article>`;
   }).join('');
   els.routeList.querySelectorAll('[data-route-id]').forEach(btn => btn.addEventListener('click', () => showRoute(btn.dataset.routeId)));
+  els.routeList.querySelectorAll('[data-route-delete-id]').forEach(btn => btn.addEventListener('click', event => {
+    event.stopPropagation();
+    deleteRoute(btn.dataset.routeDeleteId);
+  }));
 }
 
 function routeWeatherSummary(route) {

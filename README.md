@@ -93,3 +93,8 @@ Blob stores used:
 gpx-route-files
 gpx-route-index
 ```
+
+## Latest GPX route update
+
+- Users can delete their own uploaded GPX routes.
+- When a route is selected on mobile, the routes panel closes automatically so the selected route is visible on the map.

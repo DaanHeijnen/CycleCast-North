@@ -285,9 +285,12 @@ button, input, select { font: inherit; }
 .route-tabs button { color: var(--text); background: rgba(255,255,255,.08); border: 1px solid var(--line); }
 .route-tabs button.active { color: #071018; background: var(--accent); border-color: rgba(255,178,26,.8); }
 .route-list { display: grid; gap: 8px; margin-top: 10px; max-height: 240px; overflow: auto; padding-right: 2px; }
-.route-item { width: 100%; text-align: left; color: var(--text); background: rgba(255,255,255,.065); border: 1px solid rgba(255,255,255,.09); border-radius: 14px; padding: 10px; cursor: pointer; transition: .15s; }
+.route-item { width: 100%; color: var(--text); background: rgba(255,255,255,.065); border: 1px solid rgba(255,255,255,.09); border-radius: 14px; padding: 10px; transition: .15s; }
 .route-item:hover,
 .route-item.selected { background: rgba(255,178,26,.13); border-color: rgba(255,178,26,.55); }
+.route-view-btn { width: 100%; display: block; text-align: left; padding: 0; border: 0; color: inherit; background: transparent; cursor: pointer; }
+.route-delete-btn { margin-top: 9px; border: 1px solid rgba(255,107,107,.42); border-radius: 999px; padding: 7px 10px; color: #ffd0d0; background: rgba(255,107,107,.12); font-size: 12px; font-weight: 900; cursor: pointer; }
+.route-delete-btn:hover { border-color: rgba(255,107,107,.8); background: rgba(255,107,107,.22); }
 .route-title-row { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
 .route-title-row strong { font-size: 13px; }
 .route-title-row span { color: var(--accent); font-size: 12px; font-weight: 900; white-space: nowrap; }
