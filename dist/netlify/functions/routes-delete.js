@@ -1,23 +1,18 @@
 import { getStore } from '@netlify/blobs';
-import { getUser as getNetlifyUser } from '@netlify/identity';
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status,
   headers: { 'Content-Type': 'application/json' }
 });
 
-async function resolveUser(req, context) {
-  try {
-    const user = await getNetlifyUser();
-    if (user) return user;
-  } catch {}
+function resolveUser(context) {
   return context?.clientContext?.user || null;
 }
 
 export default async (req, context) => {
   if (req.method !== 'POST' && req.method !== 'DELETE') return json({ error: 'Method not allowed' }, 405);
 
-  const user = await resolveUser(req, context);
+  const user = resolveUser(context);
   if (!user) return json({ error: 'Log in before deleting routes' }, 401);
 
   try {

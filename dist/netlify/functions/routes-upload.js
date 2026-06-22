@@ -1,5 +1,4 @@
 import { getStore } from '@netlify/blobs';
-import { getUser as getNetlifyUser } from '@netlify/identity';
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status,
@@ -8,31 +7,19 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), {
 
 const MAX_GPX_BYTES = 4 * 1024 * 1024;
 
-function hasRouteAccess(user, req) {
-  const meta = user?.user_metadata || user?.user_metadata || {};
-  const headerKey = req.headers.get('x-route-access-key') || req.headers.get('X-Route-Access-Key');
-  return meta.routeAccessKey === 'Mannenavond' || meta.route_access_key === 'Mannenavond' || meta.routeAccess === true || headerKey === 'Mannenavond';
-}
-
-
 function cleanText(value, max = 120) {
   return String(value || '').replace(/[\u0000-\u001F\u007F]/g, '').trim().slice(0, max);
 }
 
-async function resolveUser(req, context) {
-  try {
-    const user = await getNetlifyUser();
-    if (user) return user;
-  } catch {}
+function resolveUser(context) {
   return context?.clientContext?.user || null;
 }
 
 export default async (req, context) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
 
-  const user = await resolveUser(req, context);
+  const user = resolveUser(context);
   if (!user) return json({ error: 'Log in before uploading routes' }, 401);
-  if (!hasRouteAccess(user, req)) return json({ error: 'This account is not allowed to upload routes. Enter the Mannenavond secret key first.' }, 403);
 
   try {
     const body = await req.json();

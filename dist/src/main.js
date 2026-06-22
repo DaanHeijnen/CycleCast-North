@@ -337,8 +337,8 @@ function initRouteControls() {
     if (action === 'all' || action === 'mine') setRouteFilter(action);
     if (action === 'upload') {
       if (!canUploadRoutes()) {
-        const unlocked = unlockRouteAccess();
-        if (!unlocked) return;
+        openAuthModal('login');
+        return;
       }
       setTimeout(() => els.routeTitleInput?.focus(), 120);
     }
@@ -380,15 +380,15 @@ function initAuth() {
 function renderAuthState() {
   const hasIdentity = Boolean(window.netlifyIdentity);
   const email = authUser?.email;
-  const verified = canUploadRoutes();
+  const canUpload = canUploadRoutes();
   els.routeAuthState.textContent = email
-    ? verified ? `Logged in as ${email}` : `Logged in as ${email}. Enter the Mannenavond key once to upload GPX routes.`
+    ? `Logged in as ${email}. You can upload GPX routes.`
     : hasIdentity ? 'Log in to upload your own routes.' : 'Netlify Identity is not loaded yet.';
-  if (els.routeUnlockBtn) els.routeUnlockBtn.hidden = !(email && !verified);
+  if (els.routeUnlockBtn) els.routeUnlockBtn.hidden = true;
   els.topAuthBtn.textContent = email ? isTouchMapDevice() ? 'Routes' : 'Log out' : 'Log in';
   els.topAuthBtn.classList.toggle('logged-in', Boolean(email));
-  els.routeUploadBtn.disabled = !verified;
-  els.routeUploadForm.classList.toggle('disabled', !verified);
+  els.routeUploadBtn.disabled = !canUpload;
+  els.routeUploadForm.classList.toggle('disabled', !canUpload);
   els.mobileRouteMenu.hidden = !(isTouchMapDevice() && email && routePanelOpen);
 }
 
@@ -397,13 +397,7 @@ function routeAccessKey() {
 }
 
 function canUploadRoutes() {
-  const meta = authUser?.user_metadata || authUser?.user_metadata || {};
-  return Boolean(authUser && (
-    meta.routeAccessKey === SIGNUP_SECRET ||
-    meta.route_access_key === SIGNUP_SECRET ||
-    meta.routeAccess === true ||
-    routeAccessKey() === SIGNUP_SECRET
-  ));
+  return Boolean(authUser);
 }
 
 function unlockRouteAccess() {
@@ -1060,8 +1054,8 @@ async function handleRouteUpload(event) {
   event.preventDefault();
   const file = els.routeFileInput.files?.[0];
   if (!canUploadRoutes()) {
-    const unlocked = unlockRouteAccess();
-    if (!unlocked) return;
+    openAuthModal('login');
+    return;
   }
   if (!file) return showStatus('Choose a .gpx file first.', true);
   if (!file.name.toLowerCase().endsWith('.gpx')) return showStatus('Only .gpx files are supported.', true);
@@ -1081,8 +1075,7 @@ async function handleRouteUpload(event) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(routeAccessKey() ? { 'X-Route-Access-Key': routeAccessKey() } : {})
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
       },
       body: JSON.stringify({
         title,
@@ -1145,8 +1138,7 @@ async function deleteRoute(id) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(routeAccessKey() ? { 'X-Route-Access-Key': routeAccessKey() } : {})
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
       },
       body: JSON.stringify({ id })
     });
