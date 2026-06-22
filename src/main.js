@@ -532,13 +532,14 @@ function initMap() {
     touchZoom: true,
     tap: false,
     bounceAtZoomLimits: false,
-    // Desktop mouse-wheel zoom felt too sensitive.
-    // Use fractional zoom steps and require more wheel movement per zoom level,
-    // while keeping touch/pinch zoom unchanged for mobile.
-    zoomSnap: isTouchDevice ? 1 : 0.25,
-    zoomDelta: isTouchDevice ? 1 : 0.5,
-    wheelPxPerZoomLevel: isTouchDevice ? 60 : 85,
-    wheelDebounceTime: isTouchDevice ? 40 : 55,
+    // Keep desktop zoom on Leaflet defaults. Earlier fractional/custom desktop zoom settings
+    // made trackpads unpredictable and could block zooming completely in some browsers.
+    // Mobile pinch zoom is unchanged.
+    scrollWheelZoom: true,
+    zoomSnap: 1,
+    zoomDelta: 1,
+    wheelPxPerZoomLevel: 200,
+    wheelDebounceTime: 45,
     zoomAnimation: false,
     fadeAnimation: false,
     markerZoomAnimation: false,
