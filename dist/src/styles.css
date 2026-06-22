@@ -545,7 +545,16 @@ button, input, select { font: inherit; }
 
 
 /* Desktop zoom buttons and calmer map controls */
+.leaflet-bottom.leaflet-right {
+  z-index: 960 !important;
+}
+.leaflet-bottom.leaflet-right .leaflet-control {
+  margin-right: 18px !important;
+  margin-bottom: 18px !important;
+}
+
 .leaflet-control-zoom {
+  display: block !important;
   border: 1px solid rgba(8, 14, 22, .18) !important;
   border-radius: 14px !important;
   box-shadow: 0 14px 40px rgba(0,0,0,.22) !important;
@@ -568,5 +577,5 @@ button, input, select { font: inherit; }
   border-bottom: 1px solid rgba(8, 14, 22, .14) !important;
 }
 @media (max-width: 980px) {
-  .leaflet-control-zoom { display: none; }
+  .leaflet-control-zoom { display: none !important; }
 }
