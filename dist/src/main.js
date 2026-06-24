@@ -195,6 +195,7 @@ const els = {
   windowSelect: document.querySelector('#windowSelect'),
   windows: document.querySelector('#windows'),
   status: document.querySelector('#status'),
+  mapNotices: document.querySelector('#mapNotices'),
   predictionNotice: document.querySelector('#predictionNotice'),
   predictionNoticeText: document.querySelector('#predictionNoticeText'),
   routeNotice: document.querySelector('#routeNotice'),
@@ -328,6 +329,7 @@ function initRouteControls() {
   });
   els.routeUploadToggleBtn.addEventListener('click', toggleRouteUpload);
   els.routeUploadForm.addEventListener('submit', handleRouteUpload);
+  window.addEventListener('resize', updateMapNoticesLayout);
   els.routeUnlockBtn?.addEventListener('click', unlockRouteAccess);
   els.routeTabs.addEventListener('click', event => {
     const btn = event.target.closest('[data-route-filter]');
@@ -383,6 +385,7 @@ function renderAuthState() {
   els.routeUploadToggleBtn.classList.toggle('active', routeUploadOpen);
   els.routeUploadForm.hidden = !routeUploadOpen;
   els.routeUploadForm.classList.toggle('disabled', !canUpload);
+  updateMapNoticesLayout();
 }
 
 function routeAccessKey() {
@@ -509,6 +512,41 @@ function setRoutePanelOpen(open) {
   if (!routePanelOpen) routeUploadOpen = false;
   renderAuthState();
   if (routePanelOpen) loadRoutes();
+  updateMapNoticesLayout();
+}
+
+function updateMapNoticesLayout() {
+  if (!els.mapNotices || !els.routesCard) return;
+
+  if (!routePanelOpen) {
+    els.mapNotices.classList.remove('below-routes-panel');
+    els.mapNotices.style.top = '';
+    els.mapNotices.style.right = '';
+    els.mapNotices.style.width = '';
+    els.routesCard.style.maxHeight = '';
+    return;
+  }
+
+  els.mapNotices.classList.add('below-routes-panel');
+
+  requestAnimationFrame(() => {
+    if (!routePanelOpen) return;
+
+    els.routesCard.style.maxHeight = '';
+    const margin = 10;
+    const cardRect = els.routesCard.getBoundingClientRect();
+    const noticeHeight = els.mapNotices.offsetHeight || 0;
+    const availableHeight = window.innerHeight - cardRect.top - noticeHeight - (margin * 3);
+
+    if (noticeHeight && availableHeight > 220 && cardRect.bottom + noticeHeight + (margin * 2) > window.innerHeight) {
+      els.routesCard.style.maxHeight = `${Math.floor(availableHeight)}px`;
+    }
+
+    const nextCardRect = els.routesCard.getBoundingClientRect();
+    els.mapNotices.style.top = `${Math.round(nextCardRect.bottom + margin)}px`;
+    els.mapNotices.style.right = `${Math.max(12, Math.round(window.innerWidth - nextCardRect.right))}px`;
+    els.mapNotices.style.width = `${Math.round(nextCardRect.width)}px`;
+  });
 }
 
 function setRouteFilter(filter) {
@@ -921,11 +959,13 @@ function renderDetail() {
 function renderPredictionNotice() {
   if (!forecast || selectedDayIndex === 0) {
     els.predictionNotice.hidden = true;
+    updateMapNoticesLayout();
     return;
   }
   const day = forecast.days[selectedDayIndex];
   els.predictionNoticeText.textContent = `Showing predictions for ${dateLong(day.date)}`;
   els.predictionNotice.hidden = false;
+  updateMapNoticesLayout();
 }
 
 function backToCurrentConditions() {
@@ -1129,6 +1169,7 @@ async function showRoute(id) {
     if (els.routeNotice) {
       els.routeNoticeText.textContent = route?.title ? `Showing route: ${route.title}` : 'Route shown on the map';
       els.routeNotice.hidden = false;
+      updateMapNoticesLayout();
     }
     renderRoutes();
     if (isTouchMapDevice()) setRoutePanelOpen(false);
@@ -1203,6 +1244,7 @@ function clearRoute() {
   activeRoute = null;
   routeLayer?.clearLayers();
   if (els.routeNotice) els.routeNotice.hidden = true;
+  updateMapNoticesLayout();
   renderRoutes();
 }
 
@@ -1213,6 +1255,7 @@ function renderRoutes() {
     : routes;
   if (!filtered.length) {
     els.routeList.innerHTML = `<div class="route-empty">${routeFilter === 'mine' ? 'You have not uploaded any routes yet.' : 'No GPX routes uploaded yet.'}</div>`;
+    updateMapNoticesLayout();
     return;
   }
   els.routeList.innerHTML = filtered.map(route => {
@@ -1241,6 +1284,7 @@ function renderRoutes() {
     event.stopPropagation();
     deleteRoute(btn.dataset.routeDeleteId);
   }));
+  updateMapNoticesLayout();
 }
 
 async function downloadRoute(id) {

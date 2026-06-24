@@ -166,6 +166,9 @@ button, input, select { font: inherit; }
   gap: 10px;
   pointer-events: none;
 }
+.map-notices.below-routes-panel {
+  z-index: 965;
+}
 .map-notice {
   display: flex;
   align-items: center;
