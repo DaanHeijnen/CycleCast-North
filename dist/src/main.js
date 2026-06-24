@@ -45,6 +45,7 @@ const POLLEN_VARIABLES = [
 const app = document.querySelector('#app');
 app.innerHTML = `
   <div id="map" class="map"></div>
+  <button id="clearRouteBtn" class="map-route-clear-btn" type="button" hidden>Hide route</button>
   <div class="topbar">
     <div class="brand">
       <div class="logo">🚴</div>
@@ -97,7 +98,6 @@ app.innerHTML = `
           <button id="routeUnlockBtn" class="route-unlock-btn" type="button" hidden>Unlock uploads</button>
         </div>
         <div class="route-head-actions">
-          <button id="clearRouteBtn" class="route-clear-btn" type="button" hidden>Hide route</button>
           <button id="routePanelCloseBtn" class="route-panel-close" type="button" aria-label="Close routes">×</button>
         </div>
       </div>
@@ -369,7 +369,7 @@ function renderAuthState() {
     ? `Logged in as ${email}. You can upload GPX routes.`
     : hasIdentity ? 'Log in to upload your own routes.' : 'Netlify Identity is not loaded yet.';
   if (els.routeUnlockBtn) els.routeUnlockBtn.hidden = true;
-  els.topAuthBtn.textContent = email ? isTouchMapDevice() ? 'Routes' : 'Log out' : 'Log in';
+  els.topAuthBtn.textContent = email ? 'Log out' : 'Log in';
   els.topAuthBtn.classList.toggle('logged-in', Boolean(email));
   els.routeUploadBtn.disabled = !canUpload;
   els.routeUploadToggleBtn.textContent = routeUploadOpen ? 'Close upload form' : 'Upload route via GPX';
@@ -429,10 +429,6 @@ function unlockRouteAccess() {
 }
 
 function handleTopAuthClick() {
-  if (authUser && isTouchMapDevice()) {
-    setRoutePanelOpen(!routePanelOpen);
-    return;
-  }
   if (authUser) {
     window.netlifyIdentity?.logout?.();
     return;
@@ -503,7 +499,6 @@ function setRoutePanelOpen(open) {
   routePanelOpen = Boolean(open);
   els.routesCard.classList.toggle('open', routePanelOpen);
   els.topRoutesBtn.classList.toggle('active', routePanelOpen);
-  els.topAuthBtn.classList.toggle('active', isTouchMapDevice() && authUser && routePanelOpen);
   if (!routePanelOpen) routeUploadOpen = false;
   renderAuthState();
   if (routePanelOpen) loadRoutes();
