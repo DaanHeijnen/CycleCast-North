@@ -45,7 +45,16 @@ const POLLEN_VARIABLES = [
 const app = document.querySelector('#app');
 app.innerHTML = `
   <div id="map" class="map"></div>
-  <button id="clearRouteBtn" class="map-route-clear-btn" type="button" hidden>Hide route</button>
+  <div id="mapNotices" class="map-notices">
+    <div id="predictionNotice" class="map-notice prediction-notice" hidden>
+      <span id="predictionNoticeText">Showing predictions</span>
+      <button id="backToCurrentBtn" type="button">Back to current conditions</button>
+    </div>
+    <div id="routeNotice" class="map-notice route-notice" hidden>
+      <span id="routeNoticeText">Route shown on the map</span>
+      <button id="clearRouteBtn" type="button">Hide route</button>
+    </div>
+  </div>
   <div class="topbar">
     <div class="brand">
       <div class="logo">🚴</div>
@@ -63,10 +72,6 @@ app.innerHTML = `
     </div>
   </div>
   <div id="status" class="status"></div>
-  <div id="predictionNotice" class="prediction-notice" hidden>
-    <span id="predictionNoticeText">Showing predictions</span>
-    <button id="backToCurrentBtn" type="button">Back to current conditions</button>
-  </div>
   <section class="sidepanel">
     <article class="card hero">
       <div class="hero-head">
@@ -192,6 +197,8 @@ const els = {
   status: document.querySelector('#status'),
   predictionNotice: document.querySelector('#predictionNotice'),
   predictionNoticeText: document.querySelector('#predictionNoticeText'),
+  routeNotice: document.querySelector('#routeNotice'),
+  routeNoticeText: document.querySelector('#routeNoticeText'),
   backToCurrentBtn: document.querySelector('#backToCurrentBtn'),
   heroTitle: document.querySelector('#heroTitle'),
   heroSub: document.querySelector('#heroSub'),
@@ -1119,7 +1126,10 @@ async function showRoute(id) {
     if (!parsed.points.length) throw new Error('This route has no points.');
     activeRoute = { ...(route || data.route), points: parsed.points };
     drawRoute(parsed.points);
-    if (els.clearRouteBtn) els.clearRouteBtn.hidden = false;
+    if (els.routeNotice) {
+      els.routeNoticeText.textContent = route?.title ? `Showing route: ${route.title}` : 'Route shown on the map';
+      els.routeNotice.hidden = false;
+    }
     renderRoutes();
     if (isTouchMapDevice()) setRoutePanelOpen(false);
     showStatus(route ? `${route.title} shown on the map.` : 'Route shown on the map.');
@@ -1192,7 +1202,7 @@ function drawRoute(points) {
 function clearRoute() {
   activeRoute = null;
   routeLayer?.clearLayers();
-  if (els.clearRouteBtn) els.clearRouteBtn.hidden = true;
+  if (els.routeNotice) els.routeNotice.hidden = true;
   renderRoutes();
 }
 
