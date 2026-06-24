@@ -518,6 +518,19 @@ function setRoutePanelOpen(open) {
 function updateMapNoticesLayout() {
   if (!els.mapNotices || !els.routesCard) return;
 
+  const hasVisibleNotice = Boolean(els.mapNotices.querySelector('.map-notice:not([hidden])'));
+  const mobileLayout = window.matchMedia('(max-width: 980px)').matches;
+  els.mapNotices.classList.toggle('has-visible-notices', hasVisibleNotice);
+
+  if (mobileLayout) {
+    els.mapNotices.classList.remove('below-routes-panel');
+    els.mapNotices.style.top = '';
+    els.mapNotices.style.right = '';
+    els.mapNotices.style.width = '';
+    els.routesCard.style.maxHeight = '';
+    return;
+  }
+
   if (!routePanelOpen) {
     els.mapNotices.classList.remove('below-routes-panel');
     els.mapNotices.style.top = '';
@@ -530,7 +543,7 @@ function updateMapNoticesLayout() {
   els.mapNotices.classList.add('below-routes-panel');
 
   requestAnimationFrame(() => {
-    if (!routePanelOpen) return;
+    if (!routePanelOpen || window.matchMedia('(max-width: 980px)').matches) return;
 
     els.routesCard.style.maxHeight = '';
     const margin = 10;

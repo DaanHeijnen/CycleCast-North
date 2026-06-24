@@ -243,12 +243,20 @@ button, input, select { font: inherit; }
 
 @media (max-width: 980px) {
   .map-notices {
-    top: 112px;
-    right: 12px;
-    width: min(330px, calc(100vw - 24px));
+    position: relative;
+    top: auto;
+    right: auto;
+    width: auto;
+    z-index: 5;
+    margin: 0 12px;
+    display: none;
+    pointer-events: none;
   }
+  .map-notices.has-visible-notices { display: flex; }
+  .map-notice { pointer-events: auto; }
 }
 @media (max-width: 520px) {
+  .map-notices { margin: 0 8px; gap: 8px; }
   .map-notice { align-items: flex-start; flex-direction: column; }
 }
 
